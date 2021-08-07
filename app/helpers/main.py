@@ -20,7 +20,8 @@ from app.helpers.discord import FileEmbed, ShortUrlEmbed
 
 conn = psycopg2.connect("user=postgres1 dbname=shrpy password=postgres")
 conn.set_session(autocommit=True)
-conn.execute("CREATE TABLE IF NOT EXISTS urls (token VARCHAR(10) NOT NULL PRIMARY KEY, url TEXT NOT NULL)")
+with conn.cursor() as cursor:
+    cursor.execute("CREATE TABLE IF NOT EXISTS urls (token VARCHAR(10) NOT NULL PRIMARY KEY, url TEXT NOT NULL)")
 
 class File:
     def __init__(self, file_instance: FileStorage, use_original_filename=True):
