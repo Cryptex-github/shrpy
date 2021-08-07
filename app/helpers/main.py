@@ -1,7 +1,6 @@
 # standard library imports
 import os
 import secrets
-import sqlite3
 from contextlib import closing
 from urllib.parse import urlparse
 from functools import cached_property
@@ -9,6 +8,7 @@ from mimetypes import guess_extension
 
 # pip imports
 from magic import from_buffer
+import psycopg2
 from flask import url_for, current_app
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import safe_join, secure_filename
@@ -17,6 +17,9 @@ from werkzeug.utils import safe_join, secure_filename
 from app import config
 from app.helpers.utils import create_hmac_hexdigest
 from app.helpers.discord import FileEmbed, ShortUrlEmbed
+
+conn = psycopg2.connect("user=postgres1 dbname=shrpy password=postgres")
+conn.set_session(autocommit=True)
 
 class File:
     def __init__(self, file_instance: FileStorage, use_original_filename=True):
@@ -183,7 +186,7 @@ class ShortUrl:
         current_app.logger.info(f'URLs: {self.shortened_url} - {self.deletion_url}')
 
         with closing(self.get_cursor()) as cursor:
-            cursor.execute("INSERT INTO urls VALUES (?, ?)", (
+            cursor.execute("INSERT INTO urls VALUES (%s, %s)", (
                 self.token,
                 self.url
             ))
@@ -202,7 +205,7 @@ class ShortUrl:
         """Returns the URL for given token from database."""
         result = None
         with closing(cls.get_cursor()) as cursor:
-            row = cursor.execute("SELECT url FROM urls WHERE token = ?", (token,))
+            row = cursor.execute("SELECT url FROM urls WHERE token = %s", (token,))
             url_row = row.fetchone()
             if url_row:
                 result = url_row['url']
@@ -215,7 +218,7 @@ class ShortUrl:
         url = cls.get_by_token(token)
 
         with closing(cls.get_cursor()) as cursor:
-            execute = cursor.execute("DELETE FROM urls WHERE token = ?", (token,))
+            execute = cursor.execute("DELETE FROM urls WHERE token = %s", (token,))
             deleted = execute.rowcount > 0
 
             if deleted:
@@ -225,12 +228,6 @@ class ShortUrl:
 
     @staticmethod
     def get_cursor():
-        conn = sqlite3.connect('urls.db')
-
-        # Enable autocommit & change row factory
-        conn.isolation_level = None
-        conn.row_factory = sqlite3.Row
-
         conn.execute("CREATE TABLE IF NOT EXISTS urls (token VARCHAR(10) NOT NULL PRIMARY KEY, url TEXT NOT NULL)")
         cursor = conn.cursor()
         return cursor
