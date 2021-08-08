@@ -10,7 +10,7 @@ from http import HTTPStatus
 from logging.handlers import RotatingFileHandler
 
 # pip imports
-from flask import Response, jsonify, request, abort
+from quart import Response, jsonify, request, abort
 
 # local imports
 from app import config
