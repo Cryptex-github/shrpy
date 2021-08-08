@@ -1,5 +1,5 @@
 from quart import Blueprint
-from app.helpers.services import ShortUrlService, FileService
+from app.helpers.services import FileService
 
 main = Blueprint('main', __name__)
 
