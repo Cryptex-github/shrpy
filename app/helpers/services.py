@@ -2,10 +2,10 @@
 from http import HTTPStatus
 
 # pip imports
-from flask import (
+from quart import (
     Response, request, jsonify, 
     current_app, abort, url_for, 
-    send_from_directory, redirect
+    send_from_directory, redirect,
 )
 
 # local imports
@@ -82,74 +82,3 @@ class FileService:
         filename = request.view_args.get('filename')
         upload_dir = current_app.config['UPLOAD_DIR']
         return send_from_directory(upload_dir, filename)
-
-class ShortUrlService:
-    @staticmethod
-    def create() -> Response:
-        url = request.form.get('url')
-
-        if url is None:
-            return response(HTTPStatus.BAD_REQUEST, Message.INVALID_URL)
-
-        short_url = ShortUrl(url)
-
-        if short_url.is_valid() is False:
-            return response(HTTPStatus.UNPROCESSABLE_ENTITY, Message.INVALID_URL)
-
-        # Add URL to database
-        short_url.add()
-
-        # Send data to Discord webhook
-        if discord_webhook.is_enabled:
-            discord_webhook.add_embed(
-                short_url.embed()
-            )
-            discord_webhook.execute()
-
-        return jsonify(url=short_url.shortened_url, delete_url=short_url.deletion_url)
-
-    @staticmethod
-    def delete() -> Response:
-        token = request.view_args.get('token')
-        hmac_hash = request.view_args.get('hmac_hash')
-        new_hmac_hash = create_hmac_hexdigest(token, current_app.secret_key)
-
-        # If digest is invalid
-        if is_valid_digest(hmac_hash, new_hmac_hash) is False:
-            abort(HTTPStatus.NOT_FOUND)
-
-        if ShortUrl.delete(token) is False:
-            abort(HTTPStatus.GONE)
-
-        return response(message=Message.URL_DELETED)
-
-    @staticmethod
-    def config() -> Response:
-        cfg = {
-            "Name": "{} (URL shortener)".format(request.host),
-            "Version": "1.0.0",
-            "DestinationType": "URLShortener",
-            "RequestMethod": "POST",
-            "Body": "MultipartFormData",
-            "RequestURL": url_for('api.shorten', _external=True),
-            "Headers": {
-                "Authorization": "YOUR-UPLOAD-PASSWORD-HERE"
-            },
-            "Arguments": {
-                "url": "$input$"
-            },
-            "URL": "$json:url$",
-            "DeletionURL": "$json:delete_url$",
-            "ErrorMessage": "$json:status$"
-        }
-        return jsonify(cfg)
-
-    @staticmethod
-    def get_by_token() -> Response:
-        token = request.view_args.get('token')
-        short_url = ShortUrl.get_by_token(token)
-
-        if short_url is None:
-            abort(HTTPStatus.NOT_FOUND)
-
-        return redirect(short_url)
