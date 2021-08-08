@@ -2,6 +2,7 @@
 import logging
 
 # pip imports
+import aiohttp
 from quart import Quart
 from werkzeug.exceptions import HTTPException
 
@@ -9,7 +10,7 @@ from werkzeug.exceptions import HTTPException
 from app.helpers.utils import response, add_unsupported_mimetypes, logger_handler
 from app.helpers.discord import CustomDiscordWebhook
 
-discord_webhook = CustomDiscordWebhook()
+discord_webhook = CustomDiscordWebhook(adapter=discord.AsyncWebhookAdapter(aiohttp.ClientSession()))
 
 def create_app():
     app = Quart(__name__)
