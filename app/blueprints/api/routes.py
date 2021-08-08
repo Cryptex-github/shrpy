@@ -6,7 +6,7 @@ api = Blueprint('api', __name__)
 
 @api.get('/sharex/upload')
 def upload_config():
-    return await FileService.config()
+    return FileService.config()
 
 @api.post('/upload')
 @auth_required
