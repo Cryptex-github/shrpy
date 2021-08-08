@@ -1,8 +1,11 @@
 # standard library imports
+import asyncio
 import logging
 
 # pip imports
 import aiohttp
+import uvloop
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 from quart import Quart
 from werkzeug.exceptions import HTTPException
 
