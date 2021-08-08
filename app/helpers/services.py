@@ -34,10 +34,7 @@ class FileService:
 
         # Send data to Discord webhook
         if discord_webhook.is_enabled:
-            discord_webhook.add_embed(
-                f.embed()
-            )
-            await discord_webhook.execute()
+            await discord_webhook.execute(f.embed())
 
         # Return JSON
         return jsonify(url=f.url, delete_url=f.deletion_url)
