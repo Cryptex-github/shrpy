@@ -10,7 +10,8 @@ from http import HTTPStatus
 from logging.handlers import RotatingFileHandler
 
 # pip imports
-from quart import Response, jsonify, request, abort, run_sync
+from quart import Response, jsonify, request, abort
+from quart.utils import run_sync
 
 # local imports
 from app import config
