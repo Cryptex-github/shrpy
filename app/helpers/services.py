@@ -15,8 +15,8 @@ from app.helpers.utils import Message, response, create_hmac_hexdigest, is_valid
 
 class FileService:
     @staticmethod
-    def create() -> Response:
-        uploaded_file = request.files.get('file')
+    async def create() -> Response:
+        uploaded_file = await request.files.get('file')
         
         if uploaded_file is None:
             return response(HTTPStatus.BAD_REQUEST, Message.INVALID_FILE)
@@ -30,20 +30,20 @@ class FileService:
             return response(HTTPStatus.UNPROCESSABLE_ENTITY, Message.INVALID_FILE_TYPE)
 
         # Save the file
-        f.save()
+        await f.save()
 
         # Send data to Discord webhook
         if discord_webhook.is_enabled:
             discord_webhook.add_embed(
                 f.embed()
             )
-            discord_webhook.execute()
+            await discord_webhook.execute()
 
         # Return JSON
         return jsonify(url=f.url, delete_url=f.deletion_url)
 
     @staticmethod
-    def delete() -> Response:
+    async def delete() -> Response:
         filename = request.view_args.get('filename')
         hmac_hash = request.view_args.get('hmac_hash')
         new_hmac_hash = create_hmac_hexdigest(filename, current_app.secret_key)
@@ -52,13 +52,13 @@ class FileService:
         if is_valid_digest(hmac_hash, new_hmac_hash) is False:
             abort(HTTPStatus.NOT_FOUND)
 
-        if File.delete(filename) is False:
+        if await File.delete(filename) is False:
             abort(HTTPStatus.GONE)
 
         return response(message=Message.FILE_DELETED)
     
     @staticmethod
-    def config() -> Response:
+    async def config() -> Response:
         cfg = {
             "Name": "{} (File uploader)".format(request.host),
             "Version": "1.0.0",
