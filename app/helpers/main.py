@@ -7,9 +7,9 @@ from mimetypes import guess_extension
 
 # pip imports
 from magic import from_buffer
-from quart import url_for, current_app
-from werkzeug.datastructures import FileStorage
-from werkzeug.utils import safe_join, secure_filename
+from quart import url_for, current_app, run_sync
+from quart.datastructures import FileStorage
+from quart import safe_join, secure_filename
 
 # local imports
 from app import config
@@ -41,10 +41,10 @@ class File:
         return f'{filename}.{self.extension}'
 
     @cached_property
-    def extension(self) -> str:
+    async def extension(self) -> str:
         """Returns extension using `python-magic` and `mimetypes`."""
-        file_bytes = self.__file.read(config.MAGIC_BUFFER_BYTES)
-        mime = from_buffer(file_bytes, mime=True).lower()
+        file_bytes = await self.__file.read(config.MAGIC_BUFFER_BYTES)
+        mime = (await run_sync(from_buffer)(file_bytes, mime=True)).lower()
         ext = guess_extension(mime)
 
         if ext is None:
@@ -100,7 +100,7 @@ class File:
 
         return allowed
 
-    def save(self, save_directory = config.UPLOAD_DIR) -> None:
+    async def save(self, save_directory = config.UPLOAD_DIR) -> None:
         """Saves the file to `UPLOAD_DIR`."""
         if os.path.isdir(save_directory) is False:
             os.makedirs(save_directory)
@@ -113,7 +113,7 @@ class File:
         # Set file descriptor back to beginning of the file so save works correctly
         self.__file.seek(os.SEEK_SET)
 
-        self.__file.save(save_path)
+        await self.__file.save(save_path)
 
     def embed(self) -> FileEmbed:
         """Returns FileEmbed instance for this file."""
