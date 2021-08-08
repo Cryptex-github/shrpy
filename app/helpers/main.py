@@ -7,7 +7,8 @@ from mimetypes import guess_extension
 
 # pip imports
 from magic import from_buffer
-from quart import url_for, current_app, run_sync
+from quart import url_for, current_app
+from quart.utils import run_sync
 from quart.datastructures import FileStorage
 from quart import safe_join, secure_filename
 
