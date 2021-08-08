@@ -1,7 +1,7 @@
 import os
 from app import create_app
 
-# WSGI instance
+# ASGI instance
 application = create_app()
 
 # Get secret from OS environment
