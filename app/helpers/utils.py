@@ -10,7 +10,7 @@ from http import HTTPStatus
 from logging.handlers import RotatingFileHandler
 
 # pip imports
-from quart import Response, jsonify, request, abort
+from quart import Response, jsonify, request, abort, run_sync
 
 # local imports
 from app import config
@@ -27,7 +27,7 @@ def create_hmac_hexdigest(hmac_data: str, secret_key: str = None) -> str:
 
 def is_valid_digest(hash_a: str, hash_b: str) -> bool:
     """Compares two hashes using `hmac.compare_digest`."""
-    return hmac.compare_digest(hash_a, hash_b)
+    return run_sync(hmac.compare_digest)(hash_a, hash_b)
 
 def response(status_code: int = HTTPStatus.OK, status: str = HTTPStatus.OK.phrase, **kwargs) -> Response:
     """Wrapper for `flask.jsonify`
