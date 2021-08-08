@@ -10,7 +10,7 @@ from werkzeug.exceptions import HTTPException
 from app.helpers.utils import response, add_unsupported_mimetypes, logger_handler
 from app.helpers.discord import CustomDiscordWebhook
 
-discord_webhook = CustomDiscordWebhook(adapter=discord.AsyncWebhookAdapter(aiohttp.ClientSession()))
+discord_webhook = None
 
 def create_app():
     app = Quart(__name__)
@@ -24,10 +24,7 @@ def create_app():
     app.config.from_pyfile('config.py')
 
     # Set Discord webhook URLs
-    discord_webhook.url = app.config.get('DISCORD_WEBHOOKS')
-
-    # Set discord webhook timeout
-    discord_webhook.timeout = app.config.get('DISCORD_WEBHOOK_TIMEOUT')
+    discord_webhook = CustomDiscordWebhook(app.config.get('DISCORD_WEBHOOKS'), adapter=discord.AsyncWebhookAdapter(aiohttp.ClientSession()))
 
     # Add unsupported mimetypes to mimetypes module
     add_unsupported_mimetypes()
