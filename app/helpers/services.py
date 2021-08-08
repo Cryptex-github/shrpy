@@ -49,10 +49,10 @@ class FileService:
         new_hmac_hash = create_hmac_hexdigest(filename, current_app.secret_key)
 
         # If digest is invalid
-        if is_valid_digest(hmac_hash, new_hmac_hash) is False:
+        if (await is_valid_digest(hmac_hash, new_hmac_hash)) is False:
             abort(HTTPStatus.NOT_FOUND)
 
-        if await File.delete(filename) is False:
+        if (await File.delete(filename)) is False:
             abort(HTTPStatus.GONE)
 
         return response(message=Message.FILE_DELETED)
